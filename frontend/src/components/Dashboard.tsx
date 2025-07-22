@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { fetchEvents } from '../utils/api';
 import { useAuth } from '../AuthContext';
 
@@ -9,11 +9,14 @@ interface Event {
   timestamp: string;
 }
 
+const WS_URL = process.env.REACT_APP_WS_EVENTS_URL || 'ws://localhost:4000/ws/events';
+
 const Dashboard: React.FC = () => {
-  const { logout, username } = useAuth();
+  const { logout, username, token } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const loadEvents = async () => {
     setLoading(true);
@@ -30,9 +33,31 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadEvents();
-    const interval = setInterval(loadEvents, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    // WebSocket for live updates
+    if (!token) return;
+    const ws = new WebSocket(`${WS_URL}?token=${token}`);
+    wsRef.current = ws;
+    ws.onmessage = (event) => {
+      try {
+        const newEvent = JSON.parse(event.data);
+        setEvents(prev => [newEvent, ...prev]);
+      } catch {}
+    };
+    ws.onerror = () => {
+      // fallback to polling if ws fails
+      if (wsRef.current) wsRef.current.close();
+    };
+    ws.onclose = () => {
+      // fallback to polling
+      const poll = setInterval(loadEvents, 3000);
+      wsRef.current = null;
+      return () => clearInterval(poll);
+    };
+    return () => {
+      ws.close();
+    };
+    // eslint-disable-next-line
+  }, [token]);
 
   return (
     <div style={{ padding: 24 }}>
