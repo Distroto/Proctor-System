@@ -10,7 +10,7 @@ router.post('/tab-switch', tabSwitchController.logTabSwitchEvent);
 // POST /events/face-detection
 router.post('/face-detection', faceDetectionController.logFaceDetectionEvent);
 
-// GET /events/:sessionId
-router.get('/:sessionId', sessionEventsController.getEventsBySession);
+// GET /events
+router.get('/', sessionEventsController.getEventsBySession);
 
 module.exports = router; 

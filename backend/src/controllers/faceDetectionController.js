@@ -1,8 +1,9 @@
 const eventsService = require('../services/eventsService');
 
 exports.logFaceDetectionEvent = (req, res) => {
-  const { sessionId, numFaces, timestamp, snapshot } = req.body;
-  if (!sessionId || typeof numFaces !== 'number' || !timestamp) {
+  const { numFaces, timestamp, snapshot } = req.body;
+  const sessionId = req.user.sessionId;
+  if (typeof numFaces !== 'number' || !timestamp) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   eventsService.addEvent(sessionId, {
