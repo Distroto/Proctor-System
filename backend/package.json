@@ -1,0 +1,25 @@
+{
+  "name": "proctor-system",
+  "version": "1.0.0",
+  "description": "A basic proctoring system to detect tab switches and multiple faces during online tests.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Distroto/Proctor-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Distroto/Proctor-System/issues"
+  },
+  "homepage": "https://github.com/Distroto/Proctor-System#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}
