@@ -88,7 +88,7 @@ const WebcamStream: React.FC = () => {
             <div style={{ color: 'red' }}>Error: {result.error}</div>
           ) : (
             <div>
-              <b>Timestamp:</b> {result.timestamp}<br />
+              <b>Timestamp:</b> {result.timestamp ? new Date(result.timestamp).toLocaleString() : ''}<br />
               <b>Faces Detected:</b> {result.numFaces}
               {result.numFaces > 1 && <span style={{ color: 'red', marginLeft: 8 }}>Suspicious!</span>}
             </div>
