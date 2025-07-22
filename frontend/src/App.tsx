@@ -1,23 +1,26 @@
 import React, { useEffect } from 'react';
+import { AuthProvider, useAuth } from './AuthContext';
 import { logTabSwitchEvent } from './utils/api';
 import WebcamStream from './components/WebcamStream';
 import Dashboard from './components/Dashboard';
+import LoginSignup from './components/LoginSignup';
 
-const SESSION_ID = 'demo-session-1';
+const MainApp: React.FC = () => {
+  const { token, sessionId } = useAuth();
 
-function App() {
   useEffect(() => {
+    if (!token || !sessionId) return;
     const handleBlur = () => {
-      logTabSwitchEvent(SESSION_ID, 'Window lost focus');
+      logTabSwitchEvent(sessionId, 'Window lost focus');
     };
     const handleFocus = () => {
-      logTabSwitchEvent(SESSION_ID, 'Window gained focus');
+      logTabSwitchEvent(sessionId, 'Window gained focus');
     };
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        logTabSwitchEvent(SESSION_ID, 'Tab or window hidden');
+        logTabSwitchEvent(sessionId, 'Tab or window hidden');
       } else {
-        logTabSwitchEvent(SESSION_ID, 'Tab or window visible');
+        logTabSwitchEvent(sessionId, 'Tab or window visible');
       }
     };
     window.addEventListener('blur', handleBlur);
@@ -28,7 +31,9 @@ function App() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [token, sessionId]);
+
+  if (!token || !sessionId) return <LoginSignup />;
 
   return (
     <div style={{ display: 'flex', background: '#f7f7f7', height: '100vh' }}>
@@ -44,9 +49,17 @@ function App() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: 48, overflow: 'hidden' }}>
         <h1 style={{ fontWeight: 700, fontSize: 32, marginBottom: 8 }}>Proctoring System Demo</h1>
         <p style={{ color: '#555', marginBottom: 32 }}>Tab switch, focus/blur, and webcam face events will be logged as suspicious events.</p>
-        <WebcamStream />
+        <WebcamStream sessionId={sessionId} />
       </main>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

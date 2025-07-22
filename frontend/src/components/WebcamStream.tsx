@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws/detect';
-const SESSION_ID = 'demo-session-1';
 
 interface DetectionResult {
   timestamp: string;
@@ -12,7 +11,11 @@ interface DetectionResult {
 
 const FRAME_INTERVAL = 1000; // ms
 
-const WebcamStream: React.FC = () => {
+interface WebcamStreamProps {
+  sessionId: string;
+}
+
+const WebcamStream: React.FC<WebcamStreamProps> = ({ sessionId }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -68,13 +71,13 @@ const WebcamStream: React.FC = () => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = (reader.result as string).split(',')[1];
-          wsRef.current?.send(JSON.stringify({ sessionId: SESSION_ID, image: base64 }));
+          wsRef.current?.send(JSON.stringify({ sessionId, image: base64 }));
         };
         reader.readAsDataURL(blob);
       }, 'image/jpeg');
     }, FRAME_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [sessionId]);
 
   return (
     <div>

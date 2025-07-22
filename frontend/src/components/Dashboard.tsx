@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:4000';
+import { fetchEvents } from '../utils/api';
+import { useAuth } from '../AuthContext';
 
 interface Event {
   type: string;
@@ -10,40 +10,39 @@ interface Event {
 }
 
 const Dashboard: React.FC = () => {
-  const [sessionId, setSessionId] = useState('demo-session-1');
+  const { logout, username } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEvents = async () => {
+  const loadEvents = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch(`${API_BASE}/events/${sessionId}`);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setEvents(data.events || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch events');
-    } finally {
+    const data = await fetchEvents();
+    if (!data) {
+      setError('Failed to fetch events');
       setLoading(false);
+      return;
     }
+    setEvents(data.events || []);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchEvents();
-    const interval = setInterval(fetchEvents, 3000);
+    loadEvents();
+    const interval = setInterval(loadEvents, 3000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [sessionId]);
+  }, []);
 
   return (
     <div style={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <b>User:</b> {username}
+        </div>
+        <button onClick={logout} style={{ background: '#eee', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Logout</button>
+      </div>
       <h2>Suspicious Events Dashboard</h2>
-      <label>
-        Session ID:{' '}
-        <input value={sessionId} onChange={e => setSessionId(e.target.value)} style={{ marginRight: 8 }} />
-      </label>
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red' }}>Error: {error}</div>}
       <table style={{ width: '100%', marginTop: 16, borderCollapse: 'collapse' }}>
