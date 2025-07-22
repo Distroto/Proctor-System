@@ -20,41 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BACKEND_URL = "http://backend:5000/events/face-detection"  # Use service name in Docker
-
-@app.post("/detect")
-async def detect_faces(
-    sessionId: str = Form(...),
-    file: UploadFile = File(...)
-):
-    image_bytes = await file.read()
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    face_locations = face_recognition.face_locations(rgb_img)
-    num_faces = len(face_locations)
-    timestamp = datetime.utcnow().isoformat()
-
-    # Optionally encode snapshot as base64 (not implemented here)
-    snapshot = None
-
-    # If more than 1 face, send event to backend
-    if num_faces > 1:
-        try:
-            requests.post(BACKEND_URL, json={
-                "sessionId": sessionId,
-                "numFaces": num_faces,
-                "timestamp": timestamp,
-                "snapshot": snapshot
-            })
-        except Exception as e:
-            print(f"Failed to send event to backend: {e}")
-
-    return JSONResponse({
-        "timestamp": timestamp,
-        "numFaces": num_faces,
-        "faces": face_locations
-    })
+BACKEND_URL = "http://backend:4000/events/face-detection"  
 
 @app.websocket("/ws/detect")
 async def websocket_detect(websocket: WebSocket):
@@ -78,7 +44,7 @@ async def websocket_detect(websocket: WebSocket):
                 timestamp = datetime.utcnow().isoformat()
                 # Optionally encode snapshot as base64 (not implemented here)
                 snapshot = None
-                if num_faces > 1:
+                if num_faces != 1:
                     try:
                         requests.post(BACKEND_URL, json={
                             "sessionId": sessionId,
